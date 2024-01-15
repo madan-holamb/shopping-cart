@@ -1,0 +1,13 @@
+1701248009435	Rename local variable 'sales'
+1701248036804	Rename local variable 'dealerSales'
+1701248055913	Rename local variable 'salesByDealerId'
+1701248070730	Rename local variable 'dealerAggregate'
+1701249669548	Rename field 'inputTopic'
+1701250450884	Delete elements
+1701253373263	Delete element
+1701256049071	Rename local variable 'order'
+1701259979652	Delete element
+1701259991576	Delete element
+1701260025268	Delete element
+1701348380565	Delete element
+1701350358544	Rename field 'userSessionStoreService'

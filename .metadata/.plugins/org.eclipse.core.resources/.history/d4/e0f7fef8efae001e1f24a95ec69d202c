@@ -1,0 +1,5 @@
+package com.osc.cache.serializer;
+
+public class CategorySerializer {
+
+}

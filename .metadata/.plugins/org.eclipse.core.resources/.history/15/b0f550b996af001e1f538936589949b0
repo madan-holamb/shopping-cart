@@ -1,0 +1,43 @@
+package com.osc.cache.dao;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+import com.osc.cache.payload.Category;
+import com.osc.cache.payload.DataObject;
+import com.osc.cache.payload.DataStore;
+import com.osc.cache.payload.Response;
+
+public class ProductDataHandling {
+	
+	public Response findNoViewingHistoryRecord() {
+
+		DataObject dataObject = new DataObject();
+
+		DataStore dataStore = new DataStore();
+		dataStore.setCategories(findAllCategories());
+		dataStore.setType("Categories");
+		dataObject.getData().add(dataStore);
+
+		dataStore = new DataStore();
+		dataStore.setFeaturedProducts(featureProductList());
+		dataStore.setType("Featured Products");
+		dataObject.getData().add(dataStore);
+
+		Response response = new Response();
+		response.setCode(200);
+		response.setDataObject(dataObject);
+
+		return response;
+	}
+	
+	public List<Category> findAllCategories() {
+
+		List<Object[]> categoryObjList = repository.findCategories();
+
+		return categoryObjList.stream()
+				.map(c -> new Category(c[0]+"", c[1]+"",c[2]+""))
+				.collect(Collectors.toList());
+	}
+
+}

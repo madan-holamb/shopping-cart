@@ -1,0 +1,12 @@
+
+{
+java:S1192>"GDefine a constant instead of duplicating this literal "userId" 3 times.b 75f04b9b4b173271396e0537005c9345h
+z
+java:S2184"FCast one of the operands of this multiplication operation to a "long".b 3389dae361af79b04c9c8e7057f60cc6h
+o	java:S125"<This block of commented-out lines of code should be removed.b ffe183ec991789ebaa073b64b4431e71h
+b
+java:S1874,".Remove this use of "parser"; it is deprecated.b 3643b86326b2ffcc0a085b4dd3a4309bh
+i
+java:S1874,"5Remove this use of "setSigningKey"; it is deprecated.b 08b822a8aac0c663344cc24b6cd22600h
+d
+java:S1874M"0Remove this use of "signWith"; it is deprecated.b 8812116bb7a773a201b81324953803e6h

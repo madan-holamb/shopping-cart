@@ -1,0 +1,9 @@
+
+f
+java:S1168s"+Return an empty collection instead of null.8À‡ÍÀÎ1b 37a6259cc0c1dae299a7866489dff0bdh
+k
+java:S1172q"0Remove this unused method parameter "caegoryId".8ÈñòÀÎ1b 559b84e01bd46a6b6e8cc78be5aed013h
+z
+java:S1128"?Remove this unused import 'com.osc.websocket.payload.Category'.8ëè¸Ğ1b acd3c826cb77e41d0b231639ad06fb08h
+z
+java:S1128"?Remove this unused import 'com.osc.websocket.payload.Response'.8ëè¸Ğ1b dd8981957b6299c0881c7376582388dbh

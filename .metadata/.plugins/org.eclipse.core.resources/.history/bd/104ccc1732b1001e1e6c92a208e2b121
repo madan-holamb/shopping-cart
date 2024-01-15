@@ -1,0 +1,33 @@
+syntax = "proto3";
+option java_multiple_files = true;
+option java_package = "com.grpc.user.product";
+import "productdto.proto";
+
+message storeAllDataInCaheRequest{
+	repeated Product product = 1;
+}
+
+
+message storeAllDataInCaheResponse{
+	bool isStored = 1;
+}
+
+
+service storeAllDataInCaheService{
+	rpc storeProductListService(storeAllDataInCaheRequest)
+	returns (storeAllDataInCaheResponse);
+}
+
+message FindByProductIdRequest{
+	string productId = 1;
+}
+
+message FindByProductIdResponse{
+	Product product = 1;
+	repeated Product productList = 2;
+}
+
+service findByIdService{
+	rpc findByProductIdService(FindByProductIdRequest)
+	returns (FindByProductIdResponse);
+}

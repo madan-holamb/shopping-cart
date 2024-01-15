@@ -1,0 +1,29 @@
+package com.osc.cache.service;
+
+import java.util.List;
+
+import com.grpc.user.product.SortByFilterRequest;
+import com.grpc.user.product.SortByFilterResponse;
+import com.grpc.user.product.findProductListByFilterGrpc;
+import com.osc.cache.payload.ProductDto;
+
+import io.grpc.stub.StreamObserver;
+
+public class NarrowFilter extends findProductListByFilterGrpc.findProductListByFilterImplBase {
+
+	@Override
+	public void findListByFilter(SortByFilterRequest request, StreamObserver<SortByFilterResponse> responseObserver) {
+		
+		List<ProductDto> productList = findProductListByFilter(request.getCategoryId(), request.getFilter());
+		
+		
+	}
+	
+	public List<ProductDto> findProductListByFilter(String categoryId,String FilterValue){
+		
+		return null;
+	}
+	
+	
+
+}

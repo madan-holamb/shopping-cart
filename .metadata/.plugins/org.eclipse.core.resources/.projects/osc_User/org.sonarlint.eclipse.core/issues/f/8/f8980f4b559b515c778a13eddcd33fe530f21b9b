@@ -1,0 +1,17 @@
+
+î
+java:S2293)"YReplace the type specification in this constructor call with the diamond operator ("<>").8›®‰∑∆1b 19a2c80a76424a114603f6d7de5fc022h
+R
+java:S2119;"Save and re-use this "Random".b 64663f4646781c9c0110838b905daa23h
+R
+java:S2119>"Save and re-use this "Random".b 64663f4646781c9c0110838b905daa23h
+Z
+java:S1452."&Remove usage of generic wildcard type.b d1457b72c3fb323a2671125aef3eab5dh
+[
+java:S1452®"&Remove usage of generic wildcard type.b d1457b72c3fb323a2671125aef3eab5dh
+ç
+java:S2293D"YReplace the type specification in this constructor call with the diamond operator ("<>").b 7c8e299672aa863431be2dedbd94f7b8h
+{
+java:S1192H"GDefine a constant instead of duplicating this literal "userId" 9 times.b 75f04b9b4b173271396e0537005c9345h
+Z
+java:S1452m"&Remove usage of generic wildcard type.b d1457b72c3fb323a2671125aef3eab5dh

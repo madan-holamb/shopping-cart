@@ -1,0 +1,21 @@
+package com.osc.cache.service;
+
+import com.grpc.user.product.storeAllDataInCaheRequest;
+import com.grpc.user.product.storeAllDataInCaheResponse;
+import com.grpc.user.product.storeAllDataInCaheServiceGrpc;
+
+import io.grpc.stub.StreamObserver;
+
+@Grpc
+public class AddAllProductsService extends storeAllDataInCaheServiceGrpc.storeAllDataInCaheServiceImplBase {
+
+	@Override
+	public void storeProductListService(storeAllDataInCaheRequest request,
+			StreamObserver<storeAllDataInCaheResponse> responseObserver) {
+		// TODO Auto-generated method stub
+		super.storeProductListService(request, responseObserver);
+	}
+	
+	
+
+}

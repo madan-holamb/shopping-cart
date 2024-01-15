@@ -1,0 +1,40 @@
+package com.osc.cache.payload;
+
+import java.io.Serializable;
+import java.util.Date;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+public class UserDto implements Serializable{
+	private static final long serialVersionUID = 1L;
+
+	 @JsonProperty("To") 
+	private String to;
+	 
+	 private String email;
+	
+	private String subject;
+	
+	private String body;
+	
+	private String name;
+	
+	private String contact;
+	
+	private String dob;
+	
+	private Date createDate;
+	
+	private String userId;
+	
+	private String isClear;
+	
+	private String otp;
+		
+
+}

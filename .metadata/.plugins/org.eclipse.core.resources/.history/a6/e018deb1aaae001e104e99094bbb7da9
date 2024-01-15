@@ -1,0 +1,346 @@
+package com.osc.websocket.service.impl;
+
+import java.math.BigDecimal;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Service;
+
+import com.grpc.user.cart.addToCartRequest;
+import com.grpc.user.cart.addToCartResponse;
+import com.grpc.user.cart.addToCartServiceGrpc.addToCartServiceBlockingStub;
+import com.grpc.user.cart.cartDetailsServiceGrpc.cartDetailsServiceBlockingStub;
+import com.grpc.user.cart.findIsProductAvailableRequest;
+import com.grpc.user.cart.findIsProductAvailableResponse;
+import com.grpc.user.cart.product;
+import com.grpc.user.cart.viewCartRequest;
+import com.grpc.user.cart.viewCartResponse;
+import com.grpc.user.cart.viewCartServiceGrpc.viewCartServiceBlockingStub;
+import com.osc.websocket.Utils;
+import com.osc.websocket.entities.Product;
+import com.osc.websocket.payload.Cart;
+import com.osc.websocket.payload.Category;
+import com.osc.websocket.payload.DataObject;
+import com.osc.websocket.payload.DataStore;
+import com.osc.websocket.payload.FeaturedProduct;
+import com.osc.websocket.payload.ProductDto;
+import com.osc.websocket.payload.Response;
+import com.osc.websocket.repository.ProductRepository;
+import com.osc.websocket.service.ProductService;
+
+import net.devh.boot.grpc.client.inject.GrpcClient;
+
+@Service
+public class ProductServiceImpl implements ProductService{
+
+	@GrpcClient("cart-service")
+	cartDetailsServiceBlockingStub cartBlockingStub;
+
+	@GrpcClient("cart-service")
+	addToCartServiceBlockingStub addToCartBlockingStub;
+	
+	@GrpcClient("view-cart")
+	viewCartServiceBlockingStub viewCartBlockingStub;
+	
+	
+
+	@Autowired
+	ProductRepository repository;
+
+	@Autowired
+	ModelMapper modelMapper;
+
+	@Override
+	public Response findNoViewingHistoryRecord() {
+
+		DataObject dataObject = new DataObject();
+
+		DataStore dataStore = new DataStore();
+		dataStore.setCategories(findAllCategories());
+		dataStore.setType("Categories");
+		dataObject.getData().add(dataStore);
+
+		dataStore = new DataStore();
+		dataStore.setFeaturedProducts(featureProductList());
+		dataStore.setType("Featured Products");
+		dataObject.getData().add(dataStore);
+
+		Response response = new Response();
+		response.setCode(200);
+		response.setDataObject(dataObject);
+
+		return response;
+	}
+
+	@Override
+	public Response findUserHadHistoryRecord(Map<String, ProductDto> recentlyViewedProductMap,String userId) {
+
+		DataObject dataObject = new DataObject();
+
+		DataStore dataStore = new DataStore();
+		dataStore.setRecentlyViewedProducts(recentlyViewedProductMap.values());
+		dataStore.setType("Recently Viewed Products");
+		dataObject.getData().add(dataStore);
+
+		dataStore = new DataStore();
+		dataStore.setSimilarProducts(findSimilarProductsForRecentlyViewed(recentlyViewedProductMap).values());
+		dataStore.setType("Similar Products");
+		dataObject.getData().add(dataStore);
+
+		dataStore = new DataStore();
+		dataStore.setCategories(findAllCategories());
+		dataStore.setType("Categories");
+		dataObject.getData().add(dataStore);
+		
+		Cart cart = new Cart();
+		
+		List<ProductDto> productList = viewAllCart(userId);
+		if(Utils.isNotEmpty(productList)) {
+			cart.setCartProducts(productList);
+			cart.setPrice(productList.stream()
+					.map(ProductDto::getProductPrice)
+					.reduce(BigDecimal.ZERO, BigDecimal::add));
+			cart.setProductsCartCount(productList.size());
+			cart.setUserId(userId);
+
+			dataStore = new DataStore();
+			dataStore.setType("Cart");
+			dataStore.setCart(cart);
+			dataObject.getData().add(dataStore);
+		}
+
+		Response response = new Response();
+		response.setCode(200);
+		response.setDataObject(dataObject);
+
+		return response;
+	}
+
+	@Override
+	public List<Category> findAllCategories() {
+
+		List<Object[]> categoryObjList = repository.findCategories();
+
+		return categoryObjList.stream()
+				.map(c -> new Category(c[0]+"", c[1]+"",c[2]+""))
+				.collect(Collectors.toList());
+	}
+
+	private List<FeaturedProduct> featureProductList() {
+
+		List<Product> productList = repository.findAllByOrderByViewCountDescProductIdAsc();
+
+		return productList.stream().map( i ->
+
+		new FeaturedProduct(i.getProductId(),i.getCategory().getCategoryId(),i.getProductName(),i.getProductPrice())
+
+				).collect(Collectors.toList());
+	}
+
+	@Override
+	public ProductDto findByProductId(String id) {
+
+		List<Object[]> productArr =  repository.findProductAndViewCountRank(id);
+
+		Product product = (Product)productArr.get(0)[0];
+		Long rank = (Long)productArr.get(0)[1];
+
+		if(product != null) {
+			ProductDto dto = modelMapper.map(product, ProductDto.class);
+			dto.setRank(rank);
+			return dto;
+		}
+
+		return null;
+	}
+
+	@Override
+	public ProductDto findProductByProductId(String productId) {
+
+		Product product = repository.findById(productId).get();
+
+		if(product != null) {
+			return modelMapper.map(product, ProductDto.class);
+		}
+
+		return null;
+	}
+
+	@Override
+	public List<ProductDto> findByCategoryId(char caegoryId) {
+
+		List<Product> similarProductList = repository.findSimilarProducts(caegoryId);
+
+		if(Utils.isNotEmpty(similarProductList)) {
+			return similarProductList.stream().map(i->modelMapper.map(i, ProductDto.class)).collect(Collectors.toList());
+		}
+
+		return null;
+	}
+
+	private Map<String, ProductDto> findSimilarProductsForRecentlyViewed(Map<String, ProductDto> recentlyViewedMap){
+
+		Map<String, ProductDto> similarProductMap = new LinkedHashMap<>(6);
+
+		int offset=0;
+		for (Map.Entry<String, ProductDto> entry : recentlyViewedMap.entrySet()) {
+
+			ProductDto product = entry.getValue();
+
+			if(product.getRank() == 1) {
+				offset = 1;
+			}else {
+				offset = 0;
+			}
+
+			ProductDto similarProducts = getSimilarProducts(product, recentlyViewedMap,similarProductMap, offset);
+
+			similarProductMap.put(similarProducts.getProductId(), similarProducts);
+		}
+
+		if(recentlyViewedMap.size()<6) {
+
+			int size = 6 - recentlyViewedMap.size();
+			boolean isTopProduct = recentlyViewedMap.values().stream().findFirst().get().getRank() == 1 ? true : false;
+
+			for(int i = 1 ; i<=size; i++) {
+
+				if(isTopProduct) {
+					offset = 1;
+				}else {
+					offset = 0;
+				}
+
+				ProductDto productDto = similarProductMap.values().stream().findFirst().get();
+
+				ProductDto similarProducts = getSimilarProducts(productDto, recentlyViewedMap,similarProductMap, offset);
+
+				similarProductMap.put(similarProducts.getProductId(), similarProducts);
+			}
+
+		}
+
+		return similarProductMap;
+	}
+
+	private ProductDto getSimilarProducts(ProductDto product,Map<String, ProductDto> recentlyViewedMap,Map<String, ProductDto> similarProductMap,int Offset) {
+
+		List<Product> findWithOffsetAndLimit = null;
+
+		findWithOffsetAndLimit = repository.findWithOffsetAndLimit(product.getCategory().getCategoryId(), PageRequest.of(Offset, 1));
+
+		String productId = findWithOffsetAndLimit.get(0).getProductId();
+
+		if(recentlyViewedMap.containsKey(productId) || similarProductMap.containsKey(productId)) {
+			return getSimilarProducts(product, recentlyViewedMap, similarProductMap, Offset+1);
+		}
+
+		return modelMapper.map(findWithOffsetAndLimit.get(0), ProductDto.class);
+	}
+
+	@Override
+	public List<ProductDto> findByCategoryId(char caegoryId, String filter) {
+
+		List<Product> productList = null;
+
+		if(filter != null && filter.equals("LH"))
+			productList = repository.findByCategoryId(caegoryId, Sort.by(Sort.Direction.ASC, "productPrice"));
+
+		if(filter != null && filter.equals("HL"))
+			productList = repository.findByCategoryId(caegoryId, Sort.by(Sort.Direction.DESC, "productPrice"));
+
+		if(filter != null && filter.equals("P"))
+			productList = repository.findByCategoryId(caegoryId, Sort.by(Sort.Direction.DESC, "viewCount"));
+
+		if(filter != null && filter.equals("NF"))
+			productList = repository.findByCategoryId(caegoryId, Sort.by(Sort.Direction.DESC, "viewCount"));
+
+		return productList.stream()
+				.map(product -> modelMapper.map(product, ProductDto.class))
+				.collect(Collectors.toList());
+	}
+
+	@Override
+	public boolean findIsProductAlreadyAvailable(Map<String, String> jsonMap){
+
+		findIsProductAvailableRequest request = findIsProductAvailableRequest.newBuilder()
+				.setProdId(jsonMap.get("prodId"))
+				.setUserId(jsonMap.get("userId"))
+				.setCacheOperation(jsonMap.get("cacheOperation"))
+				.build();
+
+		findIsProductAvailableResponse productAvailabilityService = cartBlockingStub.getCartDetails(request);
+
+		return productAvailabilityService.getIsProductAvailable();
+	}
+
+	@Override
+	public String storeCartInCache(ProductDto dto,String userId) {
+
+		addToCartRequest request = addToCartRequest.newBuilder()
+				.setProductId(dto.getProductId())
+				.setProductName(dto.getProductName())
+				.setProductPrice(dto.getProductPrice()+"")
+				.setProductDescription(dto.getProductDescription())
+				.setViewCount(dto.getViewCount())
+				.setTotalProducts(1)
+				.setUserId(userId)
+				.build();
+
+		addToCartResponse response = addToCartBlockingStub.addProductToCartService(request);
+
+		return response.getResponseMessage();
+	}
+	
+	@Override
+	public List<ProductDto> viewAllCart(String userId){
+
+		viewCartRequest request = viewCartRequest.newBuilder().setUserId(userId).build();
+
+		viewCartResponse response = viewCartBlockingStub.viewAllCart(request);
+		if(Utils.isNotEmpty(response)) {
+			List<product> productList = response.getProductListList();
+
+			return productList.stream().map(this::productToProductDto).collect(Collectors.toList());
+		}
+		
+		return null;
+
+	}
+	private ProductDto productToProductDto(product productObj) {
+		
+		ProductDto dto = new ProductDto();
+		
+		dto.setProductId(productObj.getProductId());
+		dto.setProductDescription(productObj.getProductDescription());
+		dto.setProductName(productObj.getProductName());
+		dto.setProductPrice(new BigDecimal(productObj.getProductPrice()));
+		dto.setViewCount(Integer.parseInt(productObj.getViewCount()));
+		dto.setTotalProducts(productObj.getTotalProducts());
+		dto.setUserId(productObj.getUserId());
+		
+		return dto;
+		
+	}
+
+	@Override
+	public boolean storeProductInCache() {
+		
+		List<Product> productList = repository.findAll();
+		
+		return false;
+		
+	}
+	
+	
+
+
+
+
+}

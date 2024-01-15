@@ -1,0 +1,5 @@
+package com.osc.cache.payload;
+
+public class Category {
+
+}

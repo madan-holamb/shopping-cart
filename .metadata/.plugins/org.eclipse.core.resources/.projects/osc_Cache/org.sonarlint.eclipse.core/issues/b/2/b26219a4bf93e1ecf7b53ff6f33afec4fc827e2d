@@ -1,0 +1,17 @@
+
+”
+java:S2293!"YReplace the type specification in this constructor call with the diamond operator ("<>").8ø¬‡ÆÎ1b 00275fc65bf123e355cc9b350e447fd7h
+e
+java:S1128"*Remove this unused import 'java.util.Map'.8‹’ûÀÏ1b 03ec136776d19432e0a31b46ebe07d1ah
+|
+java:S1128"ARemove this unused import 'com.hazelcast.client.HazelcastClient'.8‹’ûÀÏ1b 49838b2d2d38bacfec4a048a6dd16c58h
+€
+java:S1128"ERemove this unused import 'com.hazelcast.client.config.ClientConfig'.8‹’ûÀÏ1b c5d7a1352e0301732747ecbbdf6afd69h
+}
+java:S1128"BRemove this unused import 'com.hazelcast.config.SerializerConfig'.8‹’ûÀÏ1b 842c5fac631e0c02d6d0306ae1d4df93h
+|
+java:S1128"ARemove this unused import 'com.hazelcast.core.HazelcastInstance'.8‹’ûÀÏ1b 12cd33e0b81f5aa2a59f7b1dc8f12ec8h
+n
+java:S1128"3Remove this unused import 'com.hazelcast.map.IMap'.8‹’ûÀÏ1b 0b28399de5d0299a8329fc9c55718ebdh
+…
+java:S1128"JRemove this unused import 'com.osc.cache.serializer.ProductDtoSerializer'.8‹’ûÀÏ1b 2eba18187ea80c8443f39d8c92b3fdc9h

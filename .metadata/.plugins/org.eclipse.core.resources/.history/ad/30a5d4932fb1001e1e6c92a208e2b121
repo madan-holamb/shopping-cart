@@ -1,0 +1,169 @@
+package com.osc.websocket.service;
+
+import java.math.BigDecimal;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.grpc.user.product.Product;
+import com.osc.websocket.Utils;
+import com.osc.websocket.payload.ProductDto;
+import com.osc.websocket.payload.Response;
+import com.osc.websocket.service.impl.ProductRepoServiceImpl;
+
+@Component
+public class ProductUtility {
+	
+	public static Map<String,Map<String, ProductDto>> recentlyViewedMap = new HashMap<>();
+	
+	@Autowired
+	ProductRepoServiceImpl productRepoService;
+
+
+	public Map<String, Object> webSocketRequestMessage(String userId,String jsonMessage,ProductService productService) throws JsonMappingException, JsonProcessingException {
+		
+
+		Map<String, String> requestMap = new ObjectMapper().readValue(jsonMessage, HashMap.class);
+		
+		Map<String, Object> responseMap = null;
+		
+
+		return switch (requestMap.get("MT")) {
+
+		case "2" ->  {
+			responseMap = new HashMap<>();
+			
+			Object[] objectArr = productRepoService.findByProductId(requestMap.get("prodId"));
+			Product product = (Product) objectArr[0];
+			
+			ProductDto dto = new ProductDto();
+			dto.setProductId(jsonMessage);
+			
+			responseMap.put("MT", "2");
+			responseMap.put("catId",product.getCategory().getCategoryId()+"");
+			responseMap.put("prodId", product.getProductId());
+			responseMap.put("prodName", product.getProductName());
+			responseMap.put("prodDesc", product.getProductDescription());
+			responseMap.put("prodPrice", product.getProductPrice()+"");
+			responseMap.put("similarProducts", objectArr[1]);
+			
+
+//			ProductDto productDto = productService.findByProductId( requestMap.get("prodId"));
+//
+//			responseMap.put("MT", "2");
+//			responseMap.put("catId",productDto.getCategory().getCategoryId()+"");
+//			responseMap.put("prodId", productDto.getProductId());
+//			responseMap.put("prodName", productDto.getProductName());
+//			responseMap.put("prodDesc", productDto.getProductDescription());
+//			responseMap.put("prodPrice", productDto.getProductPrice()+"");
+//			responseMap.put("similarProducts", productService.findSimilarProductByCategoryId(productDto.getCategory().getCategoryId()));
+			
+			
+			Map<String, ProductDto> recentlyViewedProductMap = recentlyViewedMap.get(userId);
+
+			if(!Utils.isNotEmpty(recentlyViewedProductMap)) {
+				recentlyViewedProductMap = new LinkedHashMap<>();
+			}else {
+				if(recentlyViewedProductMap.size() >= 6) {
+					String firstProduct  = recentlyViewedProductMap.values().stream().findFirst().orElse(null).getProductId();
+					recentlyViewedProductMap.remove(firstProduct);
+				}
+			}
+			
+			recentlyViewedProductMap.put(productDto.getProductId(),productDto);
+			recentlyViewedMap.put(userId, recentlyViewedProductMap);
+			
+			System.out.println(recentlyViewedMap);
+
+			yield responseMap;
+		}
+
+		case "3" ->  {
+			responseMap = new HashMap<>();
+
+			responseMap.put("MT", "3");
+			responseMap.put("catId",requestMap.get("catId"));
+			responseMap.put("products", productService.findByCategoryId(requestMap.get("catId").charAt(0), requestMap.get("filter")));
+			
+
+			yield responseMap;
+		}
+		
+		case "6" ->  {
+			responseMap = new HashMap<>();
+			
+			List<ProductDto> productList = productService.viewAllCart(userId);
+			
+			responseMap.put("MT", "6");
+			responseMap.put("cartProducts", productList);
+			responseMap.put("ProductsCartCount", productList.size());
+			responseMap.put("totalPrice", productList.stream()
+			        .map(ProductDto::getProductPrice)
+			        .reduce(BigDecimal.ZERO, BigDecimal::add));
+			
+			yield responseMap;
+		}
+		
+		case "8" ->  {
+			requestMap.put("cacheOperation", "decreases");
+			requestMap.put("userId", userId);
+			boolean isDecreasedProduct = productService.findIsProductAlreadyAvailable(requestMap);
+			System.out.println("==============isProductAlreadyAvailable============="+isDecreasedProduct);
+			
+			yield null;
+		}
+		
+		case "9" ->  {
+			requestMap.put("cacheOperation", "increases");
+			requestMap.put("userId", userId);
+			boolean isProductAlreadyAvailable = productService.findIsProductAlreadyAvailable(requestMap);
+			System.out.println("==============isProductAlreadyAvailable============="+isProductAlreadyAvailable);
+			
+			if(!isProductAlreadyAvailable) {
+				ProductDto dto = productService.findProductByProductId(requestMap.get("prodId"));
+				System.out.println(productService.storeCartInCache(dto, requestMap.get("userId")));
+			}
+			
+			yield null;
+		}
+		
+		case "10" ->  {
+			requestMap.put("cacheOperation", "remove");
+			requestMap.put("userId", userId);
+			boolean isProductAlreadyAvailable = productService.findIsProductAlreadyAvailable(requestMap);
+			System.out.println("==============isProductAlreadyAvailable============="+isProductAlreadyAvailable);
+			
+			yield null;
+		}
+		
+		case "11" ->  {
+			responseMap = new HashMap<>();
+			Response response  = null;
+			if(Utils.isNotEmpty(recentlyViewedMap.get(userId)))
+				response = productService.findUserHadHistoryRecord(recentlyViewedMap.get(userId),userId);
+			else
+				response = productService.findNoViewingHistoryRecord();
+
+			responseMap.put("MT11", response);
+
+			yield responseMap;
+		}
+
+		default -> {
+			responseMap = new HashMap<>();
+			
+			responseMap.put("PING", "keep-alive");
+			
+			yield responseMap;
+		}
+
+		};
+	}
+}

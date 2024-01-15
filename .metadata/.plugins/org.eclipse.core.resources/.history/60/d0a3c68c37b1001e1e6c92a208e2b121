@@ -1,0 +1,90 @@
+package com.osc.cache.service;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.springframework.data.domain.Sort;
+
+import com.grpc.user.product.Category;
+import com.grpc.user.product.Product;
+import com.grpc.user.product.SortByFilterRequest;
+import com.grpc.user.product.SortByFilterResponse;
+import com.grpc.user.product.findProductListByFilterGrpc;
+import com.osc.cache.dao.ProductDataHandling;
+import com.osc.cache.payload.ProductDto;
+
+import io.grpc.stub.StreamObserver;
+
+public class NarrowFilter extends findProductListByFilterGrpc.findProductListByFilterImplBase {
+
+	@Override
+	public void findListByFilter(SortByFilterRequest request, StreamObserver<SortByFilterResponse> responseObserver) {
+		
+		List<ProductDto> productDtoList = findProductListByFilter(request.getCategoryId(), request.getFilter());
+		
+		List<Product> productList =  productDtoList.stream().map( i ->
+		Product.newBuilder()
+		.setProductId(i.getProductId())
+		.setProductName(i.getProductName())
+		.setProductPrice(i.getProductPrice())
+		.setProductDescription(i.getProductDescription())
+		.setViewCount(Integer.parseInt(i.getViewCount()))
+		.setImagePath(i.getImagePath())
+		.setCategory(
+				Category.newBuilder()
+				.setCategoryId(i.getCategory().getCategoryId())
+				.setImagePath(i.getCategory().getImagePath())
+				.setCategoryName(i.getCategory().getCategoryName())
+				.build())
+		.setUserId(null)
+		.build()).collect(Collectors.toList());
+		
+		SortByFilterResponse response = SortByFilterResponse.newBuilder()
+										.addAllProduct(productList)
+										.build();
+		
+		responseObserver.onNext(response);
+		
+		responseObserver.onCompleted();
+		
+	}
+	
+	public List<ProductDto> findProductListByFilter(String categoryId,String filter){
+		
+		List<ProductDto> allProductsList = ProductServiceHelper.getAllProducts();
+		
+		allProductsList.
+		
+		
+		
+		if(filter != null && filter.equals("LH"))
+			productList = repository.findByCategoryId(caegoryId, Sort.by(Sort.Direction.ASC, "productPrice"));
+
+		if(filter != null && filter.equals("HL"))
+			productList = repository.findByCategoryId(caegoryId, Sort.by(Sort.Direction.DESC, "productPrice"));
+
+		if(filter != null && filter.equals("P"))
+			productList = repository.findByCategoryId(caegoryId, Sort.by(Sort.Direction.DESC, "viewCount"));
+
+		if(filter != null && filter.equals("NF"))
+			productList = repository.findByCategoryId(caegoryId, Sort.by(Sort.Direction.DESC, "viewCount"));
+		
+		return null;
+	}
+	
+	public List<ProductDto> filterAndSortProducts(List<ProductDto> products, String categoryId) {
+        // Filter products by category ID
+        List<ProductDto> filteredProducts = products.stream()
+                .filter(product -> categoryId.equals(product.getCategory().getId()))
+                .collect(Collectors.toList());
+
+        // Sort filtered products by product price in descending order
+        filteredProducts.sort((product1, product2) -> 
+                Double.compare(Double.parseDouble(product2.getProductPrice()), Double.parseDouble(product1.getProductPrice())));
+
+        return filteredProducts;
+    }
+	
+	
+
+}

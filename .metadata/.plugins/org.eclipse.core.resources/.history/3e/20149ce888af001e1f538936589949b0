@@ -1,0 +1,33 @@
+package com.osc.cache.service;
+
+import java.util.List;
+
+import com.hazelcast.client.HazelcastClient;
+import com.hazelcast.client.config.ClientConfig;
+import com.hazelcast.config.SerializerConfig;
+import com.hazelcast.core.HazelcastInstance;
+import com.hazelcast.map.IMap;
+import com.osc.cache.payload.ProductDto;
+import com.osc.cache.serializer.ProductDtoSerializer;
+
+public class ProductServiceHelper {
+	
+	
+	public static List<ProductDto> getAllProducts() {
+		ClientConfig config = new ClientConfig();
+
+		config.setClusterName("dev");
+		config.getSerializationConfig()
+			.addSerializerConfig(new SerializerConfig()
+			.setTypeClass(ProductDto.class)
+			.setImplementation(new ProductDtoSerializer()));
+
+		HazelcastInstance hazelcastInstanceClient = HazelcastClient.newHazelcastClient(config);
+
+		IMap<String, List<ProductDto>> map = hazelcastInstanceClient.getMap("all-product-list");
+		
+		return map.get("All-Products");
+	}
+	
+
+}

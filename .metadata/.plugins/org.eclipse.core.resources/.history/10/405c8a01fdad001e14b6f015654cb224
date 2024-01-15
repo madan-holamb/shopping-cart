@@ -1,0 +1,72 @@
+package com.osc.websocket.service.impl;
+
+import java.util.List;
+import java.util.Map;
+
+import com.osc.websocket.payload.Category;
+import com.osc.websocket.payload.ProductDto;
+import com.osc.websocket.payload.Response;
+
+public class ProductRepoServiceImpl  {
+
+
+	public List<Category> findAllCategories() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+
+	public Response findNoViewingHistoryRecord() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+
+	public ProductDto findByProductId(String id) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+
+	public List<ProductDto> findByCategoryId(char caegoryId) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+
+	public Response findUserHadHistoryRecord(Map<String, ProductDto> recentlyViewedProductMap, String userId) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+
+	public List<ProductDto> findByCategoryId(char caegoryId, String filter) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+
+	public boolean findIsProductAlreadyAvailable(Map<String, String> jsonMap) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+
+	public String storeCartInCache(ProductDto dto, String userId) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+
+	public ProductDto findProductByProductId(String productId) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+
+	public List<ProductDto> viewAllCart(String userId) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+}

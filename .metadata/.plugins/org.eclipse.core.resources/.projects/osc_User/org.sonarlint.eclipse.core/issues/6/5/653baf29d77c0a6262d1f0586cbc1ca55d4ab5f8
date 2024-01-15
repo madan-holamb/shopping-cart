@@ -1,0 +1,23 @@
+
+ç
+java:S2293z"YReplace the type specification in this constructor call with the diamond operator ("<>").b 7c8e299672aa863431be2dedbd94f7b8h
+Z
+java:S1452n"&Remove usage of generic wildcard type.b d1457b72c3fb323a2671125aef3eab5dh
+é
+java:S2293«"YReplace the type specification in this constructor call with the diamond operator ("<>").b 7c8e299672aa863431be2dedbd94f7b8h
+Z
+java:S1452-"&Remove usage of generic wildcard type.b d1457b72c3fb323a2671125aef3eab5dh
+`
+java:S1172Â"+Remove this unused method parameter "date".b 5fc732311905cb27e82d67f4f6511f7fh
+R
+java:S2119u"Save and re-use this "Random".b 64663f4646781c9c0110838b905daa23h
+~
+java:S1192K"JDefine a constant instead of duplicating this literal "sessionId" 3 times.b 8e552ae94dbf397f0c72487784bc85fdh
+[
+java:S1452¬"&Remove usage of generic wildcard type.b d1457b72c3fb323a2671125aef3eab5dh
+ç
+java:S2293I"YReplace the type specification in this constructor call with the diamond operator ("<>").b 7c8e299672aa863431be2dedbd94f7b8h
+[
+java:S1452´"&Remove usage of generic wildcard type.b d1457b72c3fb323a2671125aef3eab5dh
+[
+java:S1452í"&Remove usage of generic wildcard type.b d1457b72c3fb323a2671125aef3eab5dh

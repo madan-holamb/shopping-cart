@@ -1,0 +1,127 @@
+package com.osc.websocket.service.impl;
+
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.stereotype.Service;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.grpc.user.product.FindByProductIdRequest;
+import com.grpc.user.product.FindByProductIdResponse;
+import com.grpc.user.product.findByIdServiceGrpc.findByIdServiceBlockingStub;
+import com.grpc.user.similarproduct.FindDashBoardDataRequest;
+import com.grpc.user.similarproduct.FindDashBoardDataResponse;
+import com.grpc.user.similarproduct.GetDashBoardServiceGrpc.GetDashBoardServiceBlockingStub;
+import com.osc.websocket.payload.Category;
+import com.osc.websocket.payload.ProductDto;
+import com.osc.websocket.payload.Response;
+
+import net.devh.boot.grpc.client.inject.GrpcClient;
+
+@Service
+public class ProductRepoServiceImpl  {
+	
+	@GrpcClient("dashboard-service")
+	GetDashBoardServiceBlockingStub dashBoardBlockingStub;
+	
+	@GrpcClient("product-service")
+	findByIdServiceBlockingStub findByIdBlockingStub;
+
+	
+	public List<Category> findAllCategories() {
+		
+		return null;
+	}
+
+
+	public Object findNoViewingHistoryRecord(String userId) {
+		try {
+			FindDashBoardDataRequest request = FindDashBoardDataRequest.newBuilder()
+												.setRecentlyViewedJson("null")
+												.setUserId(userId)
+												.build();
+			
+			FindDashBoardDataResponse response = dashBoardBlockingStub.findSimilarProducts(request);
+			
+			return new ObjectMapper().readValue(response.getResponseJson(), Object.class);
+			
+		}catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+
+	public Object[] findByProductId(String productId) {
+		
+		FindByProductIdRequest request = FindByProductIdRequest.newBuilder()
+										 .setProductId(productId)
+										 .build();
+		
+		FindByProductIdResponse findByProductIdService = findByIdBlockingStub.findByProductIdService(request);
+		
+		Object[] objectArr = {findByProductIdService.getProduct(),findByProductIdService.getProductListList()};
+		
+		return objectArr;
+		
+	}
+
+
+	public List<ProductDto> findByCategoryId(char caegoryId) {
+		
+		return null;
+	}
+
+
+	public Object findUserHadHistoryRecord(Map<String, ProductDto> recentlyViewedProductMap, String userId) {
+		try {
+			String	recentlyViewedJson = new ObjectMapper().writeValueAsString(recentlyViewedProductMap);
+
+			FindDashBoardDataRequest request = FindDashBoardDataRequest.newBuilder()
+					.setRecentlyViewedJson(recentlyViewedJson)
+					.setUserId(userId)
+					.build();
+
+			FindDashBoardDataResponse response = dashBoardBlockingStub.findSimilarProducts(request);
+
+			return new ObjectMapper().readValue(response.getResponseJson(), Object.class);
+
+		}catch (Exception e) {
+			e.printStackTrace();
+		}
+
+
+		return null;
+	}
+
+
+	public List<ProductDto> findByCategoryId(char caegoryId, String filter) {
+		
+		return null;
+	}
+
+
+	public boolean findIsProductAlreadyAvailable(Map<String, String> jsonMap) {
+		
+		return false;
+	}
+
+
+	public String storeCartInCache(ProductDto dto, String userId) {
+		
+		return null;
+	}
+
+
+	public ProductDto findProductByProductId(String productId) {
+		
+		return null;
+	}
+
+
+	public List<ProductDto> viewAllCart(String userId) {
+		
+		return null;
+	}
+
+}

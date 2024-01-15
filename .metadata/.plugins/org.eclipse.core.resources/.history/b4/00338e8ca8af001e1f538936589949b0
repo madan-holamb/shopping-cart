@@ -1,0 +1,93 @@
+package com.osc.cache.dao;
+
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import org.springframework.stereotype.Component;
+
+import com.osc.cache.payload.Category;
+import com.osc.cache.payload.DataObject;
+import com.osc.cache.payload.DataStore;
+import com.osc.cache.payload.FeaturedProduct;
+import com.osc.cache.payload.ProductDto;
+import com.osc.cache.payload.Response;
+import com.osc.cache.service.ProductServiceHelper;
+
+@Component
+public class ProductDataHandling {
+	
+	public Response findNoViewingHistoryRecord() {
+		
+		List<ProductDto> allProductList = ProductServiceHelper.getAllProducts();
+
+		DataObject dataObject = new DataObject();
+
+		DataStore dataStore = new DataStore();
+		dataStore.setCategories(findAllCategories(allProductList));
+		dataStore.setType("Categories");
+		dataObject.getData().add(dataStore);
+
+		dataStore = new DataStore();
+		dataStore.setFeaturedProducts(featureProductList(allProductList));
+		dataStore.setType("Featured Products");
+		dataObject.getData().add(dataStore);
+
+		Response response = new Response();
+		response.setCode(200);
+		response.setDataObject(dataObject);
+
+		return response;
+	}
+	
+	
+	 private List<Category> findAllCategories(List<ProductDto> allProductList) {
+		
+		Map<String, Integer> viewCountMap = allProductList.stream()
+        .collect(Collectors.groupingBy(product -> product.getCategory().getCategoryId(),
+                Collectors.summingInt(product -> Integer.parseInt(product.getViewCount()))));
+		
+		
+		List<Category> sortedCategories = viewCountMap.entrySet().stream()
+        .sorted(Comparator.<Map.Entry<String, Integer>>comparingInt(Map.Entry::getValue)
+                .reversed()
+                .thenComparing(Map.Entry::getKey))
+        		.map(entry -> getCategoryById(allProductList, entry.getKey()))
+        		.collect(Collectors.toList());
+		
+		 
+		 return sortedCategories;
+
+	    }
+
+	    private static Category getCategoryById(List<ProductDto> allProductList, String categoryId) {
+	        return allProductList.stream()
+	                .filter(product -> categoryId.equals(product.getCategory().getCategoryId()))
+	                .findFirst()
+	                .map(ProductDto::getCategory)
+	                .orElse(null);
+	    }
+	    
+	    private List<FeaturedProduct> featureProductList(List<ProductDto> allProductList) {
+	    	
+	    	List<ProductDto> productList = allProductList.stream()
+	        .sorted(Comparator.comparingInt(product -> Integer.parseInt(((ProductDto) product).getViewCount()))
+	                .reversed())
+	        .collect(Collectors.toList());
+	    	
+	    	return productList.stream().map(i->
+	    				new FeaturedProduct(i.getProductId(), 
+	    									i.getCategory().getCategoryId(), 
+	    									i.getProductName(), 
+	    									i.getProductPrice())
+	    				).collect(Collectors.toList());
+	    	
+	    }
+	    
+	    
+	    
+	    
+	    
+	    
+}

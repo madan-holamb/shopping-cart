@@ -1,0 +1,49 @@
+package com.osc.cache.service;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+import com.grpc.user.product.Category;
+import com.grpc.user.product.Product;
+import com.grpc.user.product.SortByFilterRequest;
+import com.grpc.user.product.SortByFilterResponse;
+import com.grpc.user.product.findProductListByFilterGrpc;
+import com.osc.cache.payload.ProductDto;
+
+import io.grpc.stub.StreamObserver;
+
+public class NarrowFilter extends findProductListByFilterGrpc.findProductListByFilterImplBase {
+
+	@Override
+	public void findListByFilter(SortByFilterRequest request, StreamObserver<SortByFilterResponse> responseObserver) {
+		
+		List<ProductDto> productList = findProductListByFilter(request.getCategoryId(), request.getFilter());
+		
+		productList.stream().map( i ->
+		Product.newBuilder()
+		.setProductId(i.getProductId())
+		.setProductName(i.getProductName())
+		.setProductPrice(i.getProductPrice())
+		.setProductDescription(i.getProductDescription())
+		.setViewCount(Integer.parseInt(i.getViewCount()))
+		.setImagePath(i.getImagePath())
+		.setCategory(
+				Category.newBuilder()
+				.setCategoryId(i.getCategory().getCategoryId())
+				.setImagePath(i.getCategory().getImagePath())
+				.setCategoryName(i.getCategory().getCategoryName())
+				.build())
+		.setUserId(null)
+		.build()).collect(Collectors.toList());
+		
+		
+	}
+	
+	public List<ProductDto> findProductListByFilter(String categoryId,String FilterValue){
+		
+		return null;
+	}
+	
+	
+
+}

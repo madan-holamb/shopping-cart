@@ -1,0 +1,31 @@
+syntax = "proto3";
+option java_multiple_files = true;
+option java_package = "com.grpc.user";
+
+message FindUserRequest{
+	string userId = 1;
+}
+
+message UserResponse{
+	 string to = 1;
+
+	 string email = 2;
+
+	 string subject = 3;
+
+	 string body = 4;
+
+	 string name = 5;
+
+	 string contact = 6;
+
+	 string dob = 7;
+
+	 string userId = 8;
+
+}
+
+service UserService{
+	rpc getUserDetails(FindUserRequest)
+	returns (UserResponse);
+}

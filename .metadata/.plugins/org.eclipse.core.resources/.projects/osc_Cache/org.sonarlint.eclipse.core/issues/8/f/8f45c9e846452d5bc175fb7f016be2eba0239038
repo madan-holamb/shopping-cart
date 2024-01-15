@@ -1,0 +1,11 @@
+
+v	java:S125"<This block of commented-out lines of code should be removed.8Ø–¥Í1b 6b2a2a0d6e0f3ed20d97422068639ea0h
+x
+java:S1128"=Remove this unused import 'com.osc.cache.payload.ProductDto'.8Ø–¥Í1b 88c993dcc32cfd575f8f8b2e373f8baeh
+e	java:S106"+Replace this use of System.out by a logger.8ˆÑóëÍ1b bb1c3f2ea781263d3a2bb92b06a2061fh
+e
+java:S1128"*Remove this unused import 'java.util.Map'.8Ø–¥Í1b 03ec136776d19432e0a31b46ebe07d1ah
+i
+java:S1128".Remove this unused import 'java.util.HashMap'.8Ø–¥Í1b d84992d255a05fff2c29a54090661da8h
+l
+java:S1128"1Remove this unused import 'java.math.BigDecimal'.8Ø–¥Í1b a79d06ab20953be721116949ab657643h

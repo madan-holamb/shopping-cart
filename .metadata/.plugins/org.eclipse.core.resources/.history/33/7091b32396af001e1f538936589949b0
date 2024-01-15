@@ -1,0 +1,26 @@
+package com.osc.cache.dao;
+
+public class ProductDataHandling {
+	
+	public Response findNoViewingHistoryRecord() {
+
+		DataObject dataObject = new DataObject();
+
+		DataStore dataStore = new DataStore();
+		dataStore.setCategories(findAllCategories());
+		dataStore.setType("Categories");
+		dataObject.getData().add(dataStore);
+
+		dataStore = new DataStore();
+		dataStore.setFeaturedProducts(featureProductList());
+		dataStore.setType("Featured Products");
+		dataObject.getData().add(dataStore);
+
+		Response response = new Response();
+		response.setCode(200);
+		response.setDataObject(dataObject);
+
+		return response;
+	}
+
+}

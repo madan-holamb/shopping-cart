@@ -1,0 +1,63 @@
+package com.osc.cache.service;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+import com.grpc.user.product.FindByProductIdRequest;
+import com.grpc.user.product.FindByProductIdResponse;
+import com.grpc.user.product.findByIdServiceGrpc;
+import com.osc.cache.payload.ProductDto;
+
+import io.grpc.stub.StreamObserver;
+
+public class FindProductService extends findByIdServiceGrpc.findByIdServiceImplBase {
+
+	@Override
+	public void findByProductIdService(FindByProductIdRequest request,
+			StreamObserver<FindByProductIdResponse> responseObserver) {
+		
+		findProduct(request.getProductId());
+		
+	}
+	
+	public Object[] findProduct(String productId) {
+		
+		List<ProductDto> allProductsList = ProductServiceHelper.getAllProducts();
+		
+		ProductDto productDto = allProductsList.stream()
+								.filter(i -> i.getProductId().equals(productId))
+								.findFirst().get();
+		
+		List<ProductDto> findByCategoryId = findByCategoryId(allProductsList, productDto);
+		
+		
+		
+		return null;
+		
+	}
+	
+	private List<ProductDto> findByCategoryId(List<ProductDto> allProductsList,ProductDto productDto){
+
+		String categoryId = productDto.getCategory().getCategoryId();
+		
+		return allProductsList.stream()
+				.filter(product -> categoryId.equals(product.getCategory().getCategoryId()) &&
+						!productDto.getProductId().equals(product.getProductId()) )
+				.sorted((p1, p2) -> {
+					int viewCount = Integer.parseInt(p2.getViewCount()) - Integer.parseInt(p1.getViewCount());
+					return viewCount != 0 ? viewCount : p1.getProductId().compareTo(p2.getProductId());
+				})
+				.collect(Collectors.toList());
+		
+	}
+	
+	private FindByProductIdResponse findByProductIdResponse(Object[] objectArr) {
+		
+		
+		
+		return null;
+	}
+	
+	
+
+}

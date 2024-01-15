@@ -1,0 +1,89 @@
+package com.osc.websocket.config;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.ApplicationListener;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
+
+import com.grpc.user.product.Category;
+import com.grpc.user.product.storeAllDataInCaheRequest;
+import com.grpc.user.product.storeAllDataInCaheResponse;
+import com.grpc.user.product.storeAllDataInCaheServiceGrpc.storeAllDataInCaheServiceBlockingStub;
+import com.osc.websocket.entities.Product;
+import com.osc.websocket.repository.ProductRepository;
+
+import net.devh.boot.grpc.client.inject.GrpcClient;
+
+@Component
+public class ApplicationStartupListener implements ApplicationListener<ApplicationReadyEvent> {
+
+    private final ProductRepository repository;
+    
+    @GrpcClient("product-service")
+	storeAllDataInCaheServiceBlockingStub storeAllDataBlockingStub;
+
+    @Autowired
+    public ApplicationStartupListener(ProductRepository repository) {
+        this.repository = repository;
+    }
+
+    @Override
+    public void onApplicationEvent(ApplicationReadyEvent event) {
+
+    	fetchDataAndProcess();
+    }
+
+    @Scheduled(fixedRate = 600000) // 10 minutes (in milliseconds)
+    public void scheduledTask() {
+
+    	fetchDataAndProcess();
+    }
+
+    private void fetchDataAndProcess() {
+    	
+         List<Product> allProductList = repository.findAll();
+         System.out.println("<<<=====Stored All Product In Cache=====>>> : "+storeInCache(allProductList));
+
+    }
+    
+    
+    public boolean storeInCache(List<Product> productList) {
+    	
+    	List<com.grpc.user.product.Product> productgrpcList =  productList.stream().map(this :: transform).collect(Collectors.toList());
+    	
+    	storeAllDataInCaheRequest request = storeAllDataInCaheRequest.newBuilder()
+    										.addAllProduct(productgrpcList)
+    										.build();
+    	
+    	storeAllDataInCaheResponse response = storeAllDataBlockingStub.storeProductListService(request);
+    	
+    	return response.getIsStored();
+    	
+    }
+    
+    private com.grpc.user.product.Product transform(Product dto) {
+		return com.grpc.user.product.Product.newBuilder()
+				.setProductId(dto.getProductId())
+				.setCategory(category(dto))
+				.setProductName(dto.getProductName())
+				.setProductPrice(dto.getProductPrice()+"")
+				.setProductDescription(dto.getProductDescription())
+				.setViewCount(dto.getViewCount())
+				.setImagePath(dto.getImagePath())
+				.build();
+	}
+    
+    public Category category(Product dto) {
+    		return Category.newBuilder()
+    						.setCategoryId(dto.getCategory().getCategoryId()+"")
+    						.setCategoryName(dto.getCategory().getCategoryName())
+    						.setImagePath(dto.getCategory().getImagePath())
+    						.build();
+    }
+    
+    
+    
+}

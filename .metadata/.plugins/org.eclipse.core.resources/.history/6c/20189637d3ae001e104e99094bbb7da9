@@ -1,0 +1,220 @@
+package com.osc.websocket.verticle;
+
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.osc.websocket.Utils;
+import com.osc.websocket.actors.ClientConnectionActor;
+import com.osc.websocket.payload.ProductDto;
+import com.osc.websocket.service.ProductService;
+import com.osc.websocket.service.ProductUtility;
+import com.osc.websocket.service.WebSocketService;
+
+import akka.actor.ActorRef;
+import akka.actor.ActorSystem;
+import akka.actor.PoisonPill;
+import io.vertx.core.AbstractVerticle;
+import io.vertx.core.MultiMap;
+import io.vertx.core.http.HttpServer;
+import io.vertx.core.http.HttpServerOptions;
+import io.vertx.core.http.ServerWebSocket;
+import lombok.NoArgsConstructor;
+
+@NoArgsConstructor
+public class WebSocketVerticle extends AbstractVerticle {
+	
+	private final Logger logger = LoggerFactory.getLogger(WebSocketVerticle.class);
+	ActorRef actorRef = null;
+	long lastHeartbeatTime = System.currentTimeMillis();
+
+	Map<String, ServerWebSocket> usersWebSocketMap = new HashMap<>();
+
+	Map<String, ActorRef> usersThreadMap = new HashMap<>();
+
+	Map<String, Long> activeUserTimeMap = new HashMap<>();
+
+	private String userId = null;
+
+	long timerId;
+
+	ProductService service;
+
+	public WebSocketVerticle(ProductService service) {
+		this.service = service;
+	}
+
+
+	@Override
+	public void start() {
+
+		HttpServerOptions options = new HttpServerOptions().addWebSocketSubProtocol("OSC-WebSocket-Protocol");
+
+		HttpServer server = vertx.createHttpServer(options);
+
+		server.webSocketHandler(this::handleWebSocket);
+
+		timerId = vertx.setPeriodic(5000, timerId -> {
+			checkHeartbeat();
+		});
+
+		server.listen(8888, result -> {
+			if (result.succeeded()) {
+				logger.info("Server started on port 8888");
+			} else {
+				logger.info("Server failed to start");
+			}
+		});
+	}
+
+	private void handleWebSocket(ServerWebSocket webSocket) {
+		MultiMap headers = webSocket.headers();
+		String headerData = headers.get("Sec-WebSocket-Protocol");
+		String[] headerDataArr = headerData.split(",");
+
+		if(!Utils.isNotEmpty(headerDataArr[0]) || !Utils.isNotEmpty(headerDataArr[1]) || 
+				!Utils.isNotEmpty(headerDataArr[2]) || !Utils.isNotEmpty(headerDataArr[3])) {
+			webSocket.close((short)400, "Invalid Connection Request : Missing Parameters");
+		}else{
+			userId = headerDataArr[1].trim()+"_"+headerDataArr[2].trim()+"_"+headerDataArr[3].trim();
+			usersWebSocketMap.put(userId, webSocket);
+			createNewThread(headerData);
+		}
+
+		webSocket.textMessageHandler(message -> {
+			try {
+				logger.info("Received text message from client: " + message);
+				String obj = new String("BCT:Keep-Alive");
+				lastHeartbeatTime = System.currentTimeMillis();
+				activeUserTimeMap.put(userId, lastHeartbeatTime);
+				String newUserId = headerDataArr[1].trim()+"_"+headerDataArr[3].trim().toUpperCase();
+				Map<String, Object> webSocketResponseMessageMap = new ProductUtility().webSocketRequestMessage(newUserId,message,service);
+				if(webSocketResponseMessageMap != null && webSocketResponseMessageMap.containsKey("MT11")) {
+					webSocket.writeTextMessage(new ObjectMapper().writeValueAsString(webSocketResponseMessageMap.get("MT11")));
+				}else if(webSocketResponseMessageMap != null && webSocketResponseMessageMap.containsKey("PING")) {
+					String keepAlive = new ObjectMapper().writeValueAsString(webSocketResponseMessageMap.get("PING"));	
+					webSocket.writeTextMessage(keepAlive);
+				}else {
+					webSocket.writeTextMessage(new ObjectMapper().writeValueAsString(webSocketResponseMessageMap));
+				}
+				
+			}catch (Exception e) {
+				e.printStackTrace();
+			}
+
+		});
+
+		webSocket.closeHandler(close -> {
+			try {
+				List<String> ClearDataList = new ArrayList<>();
+				ClearDataList.add("CLEAR");
+				ClearDataList.add(headerDataArr[1]);
+				ClearDataList.add("PRODUCED BY WEBSOCKET SERVICE");
+
+				logger.info("===========>>>>>>WEB SOCKET CLOSED<<<<<<<=============");
+
+				new WebSocketService().storeInCache(new ObjectMapper().writeValueAsString(ClearDataList));
+				if(actorRef != null) {
+					actorRef.tell(PoisonPill.getInstance(), ActorRef.noSender());
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+
+		});
+
+		webSocket.exceptionHandler(e -> {
+			System.err.println("Me  ssage: " + e.getMessage()+
+					" ,Cause: " +e.getCause()+
+					" ,Stack Trace: "+e.getStackTrace());
+		});
+
+	}
+
+	private void createNewThread(String webSocketDetail) {
+
+		ActorSystem actorSystem = ActorSystem.create();
+
+		List<String> webSocketDetailList = Stream.of(webSocketDetail.split(",")).collect(Collectors.toList());
+
+		webSocketDetailList.add("PRODUCED BY WEBSOCKET SERVICE");
+
+		ActorRef actorRef=actorSystem.actorOf(ClientConnectionActor.props(webSocketDetailList),"ClientProps");
+		actorRef.tell(webSocketDetailList, ActorRef.noSender());
+
+		this.actorRef = actorRef;
+
+		usersThreadMap.put(userId, actorRef);
+
+		logger.info("===========>>>>>>>>>THREAD CREATED SUCCESSFULLY<<<<<<<<<=============");
+	}
+
+	private void checkHeartbeat() {
+
+		for (Map.Entry<String, ServerWebSocket> userWebSocket : usersWebSocketMap.entrySet()) {
+
+			String socketUserId = userWebSocket.getKey();
+
+			Long userLastHeartBeatTime = activeUserTimeMap.get(socketUserId);
+
+			Long currentTime = System.currentTimeMillis();
+
+			userLastHeartBeatTime = userLastHeartBeatTime == null ? currentTime-1 : userLastHeartBeatTime;
+
+			Long diff = currentTime - userLastHeartBeatTime;
+
+			if(diff/1000 > 30) {
+				//WebSocket connection is closed from server side.
+				userWebSocket.getValue().close();
+
+				//Remove Actor (light weight thread) from  in backend.
+				ActorRef actorRef = usersThreadMap.get(socketUserId);
+				if(actorRef != null)
+					actorRef.tell(PoisonPill.getInstance(), ActorRef.noSender());
+				usersThreadMap.remove(socketUserId);
+			}
+
+			if(diff/1000 > 120) {
+				//Server component removes heartbeat details from HeartBeatLocalStore in backend.
+				activeUserTimeMap.remove(socketUserId);
+				//- User is forcefully logged out.
+				logoutUser(socketUserId);
+
+				usersWebSocketMap.remove(socketUserId);
+				logger.info("============USER LOGGED OUT SUCCESSFULLY=====================");
+			}
+
+		}
+
+	}
+
+	private void logoutUser(String userId) {
+
+		//in k table make user data false and in db session table add logout time to the user
+		String[] userArr = userId.split("_");
+
+		Map<String, String> sessionMap = new HashMap<>()
+				;
+		sessionMap.put("userId", userArr[0]);
+		sessionMap.put("sessionId", userArr[1]+"_"+userArr[2]);
+
+		//vertx.cancelTimer(timerId);
+		try {			new WebSocketService().logoutUser(new ObjectMapper().writeValueAsString(sessionMap));
+		} catch (JsonProcessingException e) {
+			e.printStackTrace();
+		}
+	}
+
+
+
+}

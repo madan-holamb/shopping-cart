@@ -1,0 +1,25 @@
+
+r
+java:S1155">Use isEmpty() to check whether the collection is empty or not.b 6c451add870c65fe9363cb47cfc21e0dh
+r
+java:S1155">Use isEmpty() to check whether the collection is empty or not.b 61d067f032fe5aa280e4229915072cbeh
+|
+java:S6201!"HReplace this instanceof check and cast with 'instanceof Object[] objArr'b 4ac1ed241cd7d200baf2425f5ae61d4eh
+n
+java:S1118	":Add a private constructor to hide the implicit public one.b a470a23326b3831dd974dfc1116119c2h
+~
+java:S6201"JReplace this instanceof check and cast with 'instanceof StringBuffer text'b 14b155be689d453c3a9460e5dd12c74bh
+r
+java:S1155">Use isEmpty() to check whether the collection is empty or not.b 2f4ea5111f9c10c426719244e1878ba0h
+
+java:S6201"KReplace this instanceof check and cast with 'instanceof StringBuilder text'b f7bebece1a9e5e187029c15934666174h
+“
+java:S1149"_Replace the synchronized class "StringBuffer" by an unsynchronized one such as "StringBuilder".b 44f2f3b7f27e0930b2cc3f6340e0ca94h
+r
+java:S1155">Use isEmpty() to check whether the collection is empty or not.b 38a7d93cbb8ab7855c355173bab2bfe0h
+Š
+java:S2159"VRemove this call to "equals"; comparisons between unrelated types always return false.b 51c3f59625962b899c03595d6cdfb284h
+Š
+java:S2159 "VRemove this call to "equals"; comparisons between unrelated types always return false.b 51c3f59625962b899c03595d6cdfb284h
+x
+java:S6201"DReplace this instanceof check and cast with 'instanceof String text'b 200d9ff4c517d6d6cef8aab6078adc85h

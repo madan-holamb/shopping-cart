@@ -1,0 +1,30 @@
+
+e	java:S106J"+Replace this use of System.out by a logger.8‚éüÉÍ1b bb1c3f2ea781263d3a2bb92b06a2061fh
+e	java:S106p"+Replace this use of System.out by a logger.8¯ªãÅÎ1b bb1c3f2ea781263d3a2bb92b06a2061fh
+‚
+java:S1192%"GDefine a constant instead of duplicating this literal "prodId" 3 times.8×¶¥Í1b 85b5670d0d60b33bda8bc7e7b9ac9a31h
+e	java:S106y"+Replace this use of System.out by a logger.8ÜæÊÍ1b bb1c3f2ea781263d3a2bb92b06a2061fh
+°
+java:S1192p"uDefine a constant instead of duplicating this literal "==============isProductAlreadyAvailable=============" 3 times.8‚éüÉÍ1b c296a93a520c0e021a8e53f38a2e847dh
+
+java:S1192)"FDefine a constant instead of duplicating this literal "catId" 4 times.8«“ÆüÌ1b 7af9fcdc9f7a0df7c20ea1f002701d8ah
+r
+java:S1444"7Make this "public static recentlyViewedMap" field final8¶¤€ˆË1b 9d900fab0a7ffd5013568e4af295c685h
+e	java:S106}"+Replace this use of System.out by a logger.8İŸÛÃÍ1b bb1c3f2ea781263d3a2bb92b06a2061fh
+é
+java:S1130"­Remove the declaration of thrown exception 'com.fasterxml.jackson.databind.JsonMappingException' which is a subclass of 'com.fasterxml.jackson.core.JsonProcessingException'.8¿º´¦Ë1b a9571afe8847a5a5b19e367d4cfb7617h
+€
+java:S2259B"EA "NullPointerException" could be thrown; "orElse()" can return null.8©‚¿ÉÎ1b 6b8e5fdbba820fad8935a6c382a98850h
+Š
+java:S1192m"ODefine a constant instead of duplicating this literal "cacheOperation" 3 times.8‚éüÉÍ1b 37402dceb0297a5110d0bf1dafceeb19h
+X
+java:S2386"Make this member "protected".8¶¤€ˆË1b 9d900fab0a7ffd5013568e4af295c685h
+f	java:S106‡"+Replace this use of System.out by a logger.8¡éŞÃÍ1b bb1c3f2ea781263d3a2bb92b06a2061fh
+˜
+java:S1104"]Make recentlyViewedMap a static final constant or non-public and provide accessors if needed.8¶¤€ˆË1b 9d900fab0a7ffd5013568e4af295c685h
+‚
+java:S1192n"GDefine a constant instead of duplicating this literal "userId" 4 times.8„¤†ïÍ1b 75f04b9b4b173271396e0537005c9345h
+v	java:S1251"<This block of commented-out lines of code should be removed.8Åïõ¶Ğ1b 7a74986d60a46c7c77ad6c1e0045ceb0h
+v	java:S125U"<This block of commented-out lines of code should be removed.8Åïõ¶Ğ1b c97973f1b3ced932764aac5f307d6368h
+w	java:S125’"<This block of commented-out lines of code should be removed.8Åïõ¶Ğ1b bfb67b30f62ca9890591c72377a73c05h
+w	java:S125–"<This block of commented-out lines of code should be removed.8Åïõ¶Ğ1b 2fd2e68c00a403511a390bb44dd31349h

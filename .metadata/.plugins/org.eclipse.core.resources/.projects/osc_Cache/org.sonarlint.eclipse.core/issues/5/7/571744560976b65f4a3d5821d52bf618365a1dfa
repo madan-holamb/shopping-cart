@@ -1,0 +1,5 @@
+
+é
+java:S1130"­Remove the declaration of thrown exception 'com.fasterxml.jackson.databind.JsonMappingException' which is a subclass of 'com.fasterxml.jackson.core.JsonProcessingException'.8Ô€•–Æ1b a9571afe8847a5a5b19e367d4cfb7617h
+a
+java:S1452"&Remove usage of generic wildcard type.8Ô€•–Æ1b d1457b72c3fb323a2671125aef3eab5dh

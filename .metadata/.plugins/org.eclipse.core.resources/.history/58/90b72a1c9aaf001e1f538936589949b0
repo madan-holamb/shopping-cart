@@ -1,0 +1,52 @@
+package com.osc.cache.dao;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.springframework.stereotype.Component;
+
+import com.osc.cache.payload.Category;
+import com.osc.cache.payload.DataObject;
+import com.osc.cache.payload.DataStore;
+import com.osc.cache.payload.Response;
+
+@Component
+public class ProductDataHandling {
+	
+	public Response findNoViewingHistoryRecord() {
+
+		DataObject dataObject = new DataObject();
+
+		DataStore dataStore = new DataStore();
+		dataStore.setCategories(findAllCategories());
+		dataStore.setType("Categories");
+		dataObject.getData().add(dataStore);
+
+		dataStore = new DataStore();
+		dataStore.setFeaturedProducts(featureProductList());
+		dataStore.setType("Featured Products");
+		dataObject.getData().add(dataStore);
+
+		Response response = new Response();
+		response.setCode(200);
+		response.setDataObject(dataObject);
+
+		return response;
+	}
+	
+	@Query("SELECT p.category.categoryId, p.category.categoryName, SUM(p.viewCount) AS TOTAL_COUNT " +
+			"FROM products p " +
+			"GROUP BY p.category.categoryId,p.category.categoryName " +
+			"ORDER BY TOTAL_COUNT DESC, p.category.categoryId ASC")
+	List<Object[]> findCategories();
+	
+	public List<Category> findAllCategories() {
+
+		List<Object[]> categoryObjList = repository.findCategories();
+
+		return categoryObjList.stream()
+				.map(c -> new Category(c[0]+"", c[1]+"",c[2]+""))
+				.collect(Collectors.toList());
+	}
+
+}

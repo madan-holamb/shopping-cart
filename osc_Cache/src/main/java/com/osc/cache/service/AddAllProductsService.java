@@ -1,0 +1,89 @@
+package com.osc.cache.service;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.grpc.user.product.Product;
+import com.grpc.user.product.storeAllDataInCaheRequest;
+import com.grpc.user.product.storeAllDataInCaheResponse;
+import com.grpc.user.product.storeAllDataInCaheServiceGrpc;
+import com.hazelcast.config.SerializerConfig;
+import com.hazelcast.core.HazelcastInstance;
+import com.hazelcast.map.IMap;
+import com.osc.cache.payload.Category;
+import com.osc.cache.payload.ProductDto;
+import com.osc.cache.serializer.CategorySerializer;
+import com.osc.cache.serializer.ProductDtoSerializer;
+
+import io.grpc.stub.StreamObserver;
+import net.devh.boot.grpc.server.service.GrpcService;
+
+@GrpcService
+public class AddAllProductsService extends storeAllDataInCaheServiceGrpc.storeAllDataInCaheServiceImplBase {
+	
+	@Autowired
+	HazelcastInstance hazelcastInstance;
+
+	@Override
+	public void storeProductListService(storeAllDataInCaheRequest request,
+			StreamObserver<storeAllDataInCaheResponse> responseObserver) {
+		
+		storeAllDataInCaheResponse response = storeAllDataInCaheResponse.newBuilder()
+											  .setIsStored(storeProductsInCache(request.getProductList().stream()
+													  		.map(this :: productDtoConversion)
+													  		.collect(Collectors.toList())
+													  )).build();
+		
+		responseObserver.onNext(response);
+		
+		responseObserver.onCompleted();
+											  
+
+	}
+
+	private boolean storeProductsInCache(List<ProductDto> productList) {
+		try {
+			
+			hazelcastInstance.getConfig().getSerializationConfig().addSerializerConfig(
+					new SerializerConfig().setTypeClass(ProductDto.class).setImplementation(new ProductDtoSerializer())
+					);
+			hazelcastInstance.getConfig().getSerializationConfig().addSerializerConfig(
+					new SerializerConfig().setTypeClass(Category.class).setImplementation(new CategorySerializer())
+					);
+			
+
+			IMap<String, List<ProductDto>> productStoreList = hazelcastInstance.getMap("all-product-list");
+
+			productStoreList.put("All-Products", productList);
+			
+			System.out.println("====>>>Stored All Produuct SuccessFully<<====");
+
+			return true;
+		}catch (Exception e) {
+			e.printStackTrace();
+			System.out.println("====>>>Got Exception<<<===="+e.getMessage());
+			return false;
+		}
+	}
+	
+	private ProductDto productDtoConversion(Product product) {
+		
+		Category category = new Category(product.getCategory().getCategoryId(), 
+										 product.getCategory().getCategoryName(), 
+										 product.getCategory().getImagePath(), 
+										 null);
+				
+		return new ProductDto(product.getProductId(), 
+							  product.getProductName(), 
+							  product.getProductPrice(), 
+							  product.getProductDescription(), 
+							  product.getViewCount(), null, null, 
+							  product.getImagePath(), category,null,null);
+		
+	}
+
+	
+
+}

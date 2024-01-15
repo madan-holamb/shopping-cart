@@ -1,0 +1,84 @@
+package com.osc.websocket.service.impl;
+
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.stereotype.Service;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.osc.websocket.payload.Category;
+import com.osc.websocket.payload.ProductDto;
+import com.osc.websocket.payload.Response;
+
+@Service
+public class ProductRepoServiceImpl  {
+
+
+	public List<Category> findAllCategories() {
+		
+		return null;
+	}
+
+
+	public Response findNoViewingHistoryRecord() {
+		
+		return null;
+	}
+
+
+	public ProductDto findByProductId(String id) {
+		
+		return null;
+	}
+
+
+	public List<ProductDto> findByCategoryId(char caegoryId) {
+		
+		return null;
+	}
+
+
+	public Response findUserHadHistoryRecord(Map<String, ProductDto> recentlyViewedProductMap, String userId) {
+		try {
+			
+			String recentlyViewedJson = new ObjectMapper().writeValueAsString(recentlyViewedProductMap);
+			
+		}catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		
+		return null;
+	}
+
+
+	public List<ProductDto> findByCategoryId(char caegoryId, String filter) {
+		
+		return null;
+	}
+
+
+	public boolean findIsProductAlreadyAvailable(Map<String, String> jsonMap) {
+		
+		return false;
+	}
+
+
+	public String storeCartInCache(ProductDto dto, String userId) {
+		
+		return null;
+	}
+
+
+	public ProductDto findProductByProductId(String productId) {
+		
+		return null;
+	}
+
+
+	public List<ProductDto> viewAllCart(String userId) {
+		
+		return null;
+	}
+
+}

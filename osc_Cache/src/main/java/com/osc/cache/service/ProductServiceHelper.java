@@ -1,0 +1,174 @@
+package com.osc.cache.service;
+
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.grpc.user.similarproduct.FindDashBoardDataRequest;
+import com.grpc.user.similarproduct.FindDashBoardDataResponse;
+import com.grpc.user.similarproduct.GetDashBoardServiceGrpc;
+import com.hazelcast.client.HazelcastClient;
+import com.hazelcast.client.config.ClientConfig;
+import com.hazelcast.config.SerializerConfig;
+import com.hazelcast.core.HazelcastInstance;
+import com.hazelcast.map.IMap;
+import com.osc.cache.dao.ProductDataHandling;
+import com.osc.cache.payload.Cart;
+import com.osc.cache.payload.Category;
+import com.osc.cache.payload.DataObject;
+import com.osc.cache.payload.DataStore;
+import com.osc.cache.payload.ProductDto;
+import com.osc.cache.payload.Response;
+import com.osc.cache.serializer.CategorySerializer;
+import com.osc.cache.serializer.ProductDtoSerializer;
+
+import io.grpc.stub.StreamObserver;
+import net.devh.boot.grpc.server.service.GrpcService;
+
+@GrpcService
+public class ProductServiceHelper extends GetDashBoardServiceGrpc.GetDashBoardServiceImplBase {
+	
+	@Autowired
+	ProductDataHandling productDataHandling;
+	
+	public static List<ProductDto> getAllProducts() {
+		ClientConfig config = new ClientConfig();
+
+		config.setClusterName("dev");
+		config.getSerializationConfig()
+			.addSerializerConfig(new SerializerConfig()
+			.setTypeClass(ProductDto.class)
+			.setImplementation(new ProductDtoSerializer()));
+		config.getSerializationConfig()
+			  .addSerializerConfig(new SerializerConfig()
+			  .setTypeClass(Category.class)
+			  .setImplementation(new CategorySerializer()));
+		
+		HazelcastInstance hazelcastInstanceClient = HazelcastClient.newHazelcastClient(config);
+
+		IMap<String, List<ProductDto>> map = hazelcastInstanceClient.getMap("all-product-list");
+		
+		return map.get("All-Products");
+	}
+
+	@Override
+	public void findSimilarProducts(FindDashBoardDataRequest request,
+			StreamObserver<FindDashBoardDataResponse> responseObserver) {
+		try {
+			String recentlyViewedJson = request.getRecentlyViewedJson();
+			String userId = request.getUserId();
+			if(recentlyViewedJson.equals("null")) {
+
+				Response findNoViewingHistoryRecord = findNoViewingHistoryRecord();
+
+				String noViewingHistoryJson = new ObjectMapper().writeValueAsString(findNoViewingHistoryRecord);
+				
+				FindDashBoardDataResponse response = FindDashBoardDataResponse.newBuilder().setResponseJson(noViewingHistoryJson).build();
+
+				responseObserver.onNext(response);
+
+				responseObserver.onCompleted();
+
+			}else {
+
+				Map<String, ProductDto> recentlyViewedMap = new ObjectMapper().readValue(recentlyViewedJson, new TypeReference<Map<String, ProductDto>>() {});
+
+				Response findUserHadHistoryRecord = findUserHadHistoryRecord(recentlyViewedMap, userId);
+
+				String noViewingHistoryJson = new ObjectMapper().writeValueAsString(findUserHadHistoryRecord);
+
+				FindDashBoardDataResponse response = FindDashBoardDataResponse.newBuilder().setResponseJson(noViewingHistoryJson).build();
+
+				responseObserver.onNext(response);
+
+				responseObserver.onCompleted();
+
+			}
+
+
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+
+
+
+	}
+	
+	
+	public Response findNoViewingHistoryRecord() {
+
+		List<ProductDto> allProductList = ProductServiceHelper.getAllProducts();
+
+		DataObject dataObject = new DataObject();
+
+		DataStore dataStore = new DataStore();
+		dataStore.setCategories(productDataHandling.findAllCategories(allProductList));
+		dataStore.setType("Categories");
+		dataObject.getData().add(dataStore);
+
+		dataStore = new DataStore();
+		dataStore.setFeaturedProducts(productDataHandling.featureProductList(allProductList));
+		dataStore.setType("Featured Products");
+		dataObject.getData().add(dataStore);
+
+		Response response = new Response();
+		response.setCode(200);
+		response.setDataObject(dataObject);
+
+		return response;
+	}
+	
+	public Response findUserHadHistoryRecord(Map<String, ProductDto> recentlyViewedProductMap,String userId) {
+		
+		List<ProductDto> allProductList = ProductServiceHelper.getAllProducts();
+
+		DataObject dataObject = new DataObject();
+
+		DataStore dataStore = new DataStore();
+		dataStore.setRecentlyViewedProducts(recentlyViewedProductMap.values());
+		dataStore.setType("Recently Viewed Products");
+		dataObject.getData().add(dataStore);
+
+		dataStore = new DataStore();
+		dataStore.setSimilarProducts(productDataHandling.findSimilarProductsForRecentlyViewed(recentlyViewedProductMap).values());
+		dataStore.setType("Similar Products");
+		dataObject.getData().add(dataStore);
+
+		dataStore = new DataStore();
+		dataStore.setCategories(productDataHandling.findAllCategories(allProductList));
+		dataStore.setType("Categories");
+		dataObject.getData().add(dataStore);
+		
+		Cart cart = new Cart();
+		
+		List<ProductDto> productList =productDataHandling.findCartProductOfTheUser(userId);
+		if(productList != null && !productList.isEmpty()) {
+			cart.setCartProducts(productList);
+			cart.setPrice(productList.stream()
+					.map(i -> new BigDecimal(i.getProductPrice()) )
+					.reduce(BigDecimal.ZERO, BigDecimal::add));
+			cart.setProductsCartCount(productList.size());
+			cart.setUserId(userId);
+
+			dataStore = new DataStore();
+			dataStore.setType("Cart");
+			dataStore.setCart(cart);
+			dataObject.getData().add(dataStore);
+		}
+
+		Response response = new Response();
+		response.setCode(200);
+		response.setDataObject(dataObject);
+
+		return response;
+	}
+	
+	
+	
+
+}

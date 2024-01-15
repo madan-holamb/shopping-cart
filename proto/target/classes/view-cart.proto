@@ -1,0 +1,41 @@
+syntax = "proto3";
+option java_multiple_files = true;
+option java_package = "com.grpc.user.cart";
+
+
+
+message product{
+
+	string productId = 1;
+
+	string productName = 2;
+
+	string productPrice = 3;
+
+	string productDescription = 4;
+
+	string viewCount = 5;
+
+	string totalProducts = 6;
+
+	string userId = 7;
+}
+
+message viewCartRequest{
+	string userId = 1;
+}
+
+message viewCartResponse{
+	repeated product productList = 1;
+}
+
+
+service viewCartService{
+	rpc viewAllCart(viewCartRequest)
+	returns (viewCartResponse);
+}
+
+
+
+
+

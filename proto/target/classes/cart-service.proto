@@ -1,0 +1,51 @@
+syntax = "proto3";
+option java_multiple_files = true;
+option java_package = "com.grpc.user.cart";
+
+
+
+message findIsProductAvailableRequest{
+
+	string userId = 1;
+
+	string prodId = 2;
+
+	string cacheOperation = 3;
+}
+
+message findIsProductAvailableResponse{
+	bool isProductAvailable = 1;
+}
+
+message addToCartRequest{
+
+	string productId = 1;
+
+	string productName = 2;
+
+	string productPrice =  3;
+
+	string productDescription = 5;
+
+	int32 viewCount = 6;
+
+	int32 totalProducts = 7;
+
+	string userId = 8;
+
+
+}
+
+message addToCartResponse{
+	string responseMessage = 1;
+}
+
+service addToCartService{
+	rpc addProductToCartService(addToCartRequest)
+	returns (addToCartResponse);
+}
+
+service cartDetailsService{
+	rpc getCartDetails(findIsProductAvailableRequest)
+	returns (findIsProductAvailableResponse);
+}

@@ -1,0 +1,22 @@
+
+f	java:S106â"+Replace this use of System.err by a logger.8ìÒ–Ü»1b af259b5629da223c99d853ddc8045589h
+g
+java:S1602C",Remove useless curly braces around statement8€»ßç»1b f95b70fdc3088560732a5ac135644506h
+|
+java:S1128"ARemove this unused import 'com.osc.websocket.payload.ProductDto'.8ÆÁ‘§À1b 98e6453f81173838e5155a850fe008e2h
+ã	java:S117w"QRename this local variable to match the regular expression '^[a-z][a-zA-Z0-9]*$'.8ï˛˝ä»1b 650acec1c9cf469654cb21a3518fbe1dh
+h
+java:S1602à",Remove useless curly braces around statement8¬°Ü‰«1b f95b70fdc3088560732a5ac135644506h
+x
+java:S1117ò"<Rename "actorRef" which hides the field declared at line 38.8ë¯÷»1b 06ce5622bbd8951df82fa140277cc3beh
+Ä
+java:S1128"ERemove this unused import 'org.springframework.stereotype.Component'.8À¯ö¶À1b b406a3e47a551bd9b2decc4283e4ba39h
+w	java:S125”"<This block of commented-out lines of code should be removed.8¿≥ëµ»1b 32354c6278ade36a14578a86c5f4166fh
+v
+java:S1117C";Rename "timerId" which hides the field declared at line 49.8…πò‰«1b d788d0843582347fa30f14628757091eh
+[
+java:S2129a" Remove this "String" constructor8˛áÎÆ»1b 27118326006d3829667a400ad23d5d98h
+x
+java:S1117µ"<Rename "actorRef" which hides the field declared at line 38.8ë¯÷»1b 06ce5622bbd8951df82fa140277cc3beh
+c
+java:S1481a"(Remove this unused "obj" local variable.8¸∫†˝ 1b be8f80182e0c983916da7338c2c1c040h

@@ -1,0 +1,12 @@
+
+g
+java:S1168¹"+Return an empty collection instead of null.8Õ§¡üÌ1b 37a6259cc0c1dae299a7866489dff0bdh
+…
+java:S2259ˆ"IA "NullPointerException" could be thrown; "productList" is nullable here.8‰Ìğ˜Í1b 984107ebc7a9d2e0a9657b4edd3415b4h
+d
+java:S1125Ò"(Remove the unnecessary boolean literals.8şòÿóÌ1b b326b5062b2f0e69046810717534cb09h
+l
+java:S1481Ï"0Remove this unused "productList" local variable.8‰ŒºÃÎ1b 6d588ed24371c289912f4900b7477f63h
+Œ	java:S117è"QRename this local variable to match the regular expression '^[a-z][a-zA-Z0-9]*$'.8öş”òÌ1b dfd0a82c4bf37b1e90b690a22a20692eh
+g
+java:S1168¸"+Return an empty collection instead of null.8ô‘ÆÎ1b 37a6259cc0c1dae299a7866489dff0bdh

@@ -1,0 +1,27 @@
+package com.osc.cache.service;
+
+import com.grpc.user.product.FindByProductIdRequest;
+import com.grpc.user.product.FindByProductIdResponse;
+import com.grpc.user.product.findByIdServiceGrpc;
+
+import io.grpc.stub.StreamObserver;
+
+public class FindProductService extends findByIdServiceGrpc.findByIdServiceImplBase {
+
+	@Override
+	public void findByProductIdService(FindByProductIdRequest request,
+			StreamObserver<FindByProductIdResponse> responseObserver) {
+		
+		findProduct(request.getProductId());
+		
+	}
+	
+	public Object[] findProduct(String userId) {
+		
+		
+		
+		return null;
+		
+	}
+
+}
